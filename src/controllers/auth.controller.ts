@@ -103,20 +103,26 @@ export class AuthController{
         @requestBody() credenciales: Credenciales,
     ): Promise<any> {
         const credencialExistente = await this.credencialesRepository.findById(id);
-
         if (!credencialExistente) {
         throw new HttpErrors.NotFound('credencial no encontrado');
         }
         if(!credenciales.hash){
             throw new Error("El campo 'hash' en credenciales no puede ser undefined.");
           }
-        let modelCredentials = new Credenciales();
+        const modelCredentials = new Credenciales();
 
-        let newHash = this.encriptDecryptService.Encrypt(credenciales.hash);
+        const newHash = this.encriptDecryptService.Encrypt(credenciales.hash);
+
+
+        if(credencialExistente.hash === credenciales.hash){
+            modelCredentials.hash = credenciales.hash;
+        }else{
+            modelCredentials.hash = newHash
+
+        }
 
         modelCredentials.correo = credenciales.correo;
         modelCredentials.username = credenciales.username;
-        modelCredentials.hash = newHash;
         modelCredentials.IdRol = credenciales.IdRol
 
         const credencialActualizado = await this.credencialesRepository.updateById(id, modelCredentials);
